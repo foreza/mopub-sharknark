@@ -235,8 +235,8 @@
 		924D54C120DC5ABA003EE824 /* AerServCustomEventUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 924D54B520DC5AB9003EE824 /* AerServCustomEventUtils.m */; };
 		924D54C220DC5ABA003EE824 /* AerServCustomEventRewardedInterstitial.m in Sources */ = {isa = PBXBuildFile; fileRef = 924D54B620DC5AB9003EE824 /* AerServCustomEventRewardedInterstitial.m */; };
 		924D54C320DC5ABA003EE824 /* AerServCustomEventInterstitial.m in Sources */ = {isa = PBXBuildFile; fileRef = 924D54B720DC5AB9003EE824 /* AerServCustomEventInterstitial.m */; };
-		924D54C520DC5AF1003EE824 /* AerServSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 924D54C420DC5AF1003EE824 /* AerServSDK.framework */; };
 		924D54C720DC5B55003EE824 /* libxml2.2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 924D54C620DC5B55003EE824 /* libxml2.2.tbd */; };
+		924D54CF20DC7117003EE824 /* AerServSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 924D54CD20DC706A003EE824 /* AerServSDK.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -697,6 +697,7 @@
 		924D54BB20DC5AB9003EE824 /* AerServCustomEventInterstitial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AerServCustomEventInterstitial.h; sourceTree = "<group>"; };
 		924D54C420DC5AF1003EE824 /* AerServSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = AerServSDK.framework; sourceTree = "<group>"; };
 		924D54C620DC5B55003EE824 /* libxml2.2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxml2.2.tbd; path = usr/lib/libxml2.2.tbd; sourceTree = SDKROOT; };
+		924D54CD20DC706A003EE824 /* AerServSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AerServSDK.framework; path = "mopub-sharknark/AerServSDK.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -705,7 +706,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				924D54C720DC5B55003EE824 /* libxml2.2.tbd in Frameworks */,
-				924D54C520DC5AF1003EE824 /* AerServSDK.framework in Frameworks */,
 				924D4B3C20DC5580003EE824 /* WebKit.framework in Frameworks */,
 				924D4B3A20DC557B003EE824 /* UIKit.framework in Frameworks */,
 				924D53F320DC57DA003EE824 /* libAvid-mopub-3.6.1.a in Frameworks */,
@@ -723,6 +723,7 @@
 				924D4B2420DC54E7003EE824 /* CoreGraphics.framework in Frameworks */,
 				924D4B2220DC54E0003EE824 /* AVFoundation.framework in Frameworks */,
 				924D4B2020DC54DA003EE824 /* AdSupport.framework in Frameworks */,
+				924D54CF20DC7117003EE824 /* AerServSDK.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -771,6 +772,7 @@
 		924D4B1E20DC54DA003EE824 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				924D54CD20DC706A003EE824 /* AerServSDK.framework */,
 				924D54C620DC5B55003EE824 /* libxml2.2.tbd */,
 				924D54C420DC5AF1003EE824 /* AerServSDK.framework */,
 				924D4B3B20DC5580003EE824 /* WebKit.framework */,
@@ -1831,6 +1833,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/MoPubSDK/Viewability/MOAT",
 					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/mopub-sharknark",
+					"/Users/jasonc/Desktop/Projects/mopub-sharknark/mopub-sharknark/AerServSDK.framework/**",
 				);
 				INFOPLIST_FILE = "mopub-sharknark/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
@@ -1859,6 +1863,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/MoPubSDK/Viewability/MOAT",
 					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/mopub-sharknark",
+					"/Users/jasonc/Desktop/Projects/mopub-sharknark/mopub-sharknark/AerServSDK.framework/**",
 				);
 				INFOPLIST_FILE = "mopub-sharknark/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;

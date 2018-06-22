@@ -30,9 +30,13 @@
     self = [super init];
     if (self) {
         // Create the data model.
-        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-        _pageData = [[dateFormatter monthSymbols] copy];
-    }
+
+        NSArray<NSString *> *thisList = @[@"What that?"];
+        thisList = [thisList arrayByAddingObject:@"ITS A SHARK"];
+        thisList = [thisList arrayByAddingObject:@"JK IT A DOLPHIN"];
+        _pageData = [thisList copy];
+        
+            }
     return self;
 }
 

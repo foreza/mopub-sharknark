@@ -12,13 +12,16 @@
 @interface DataViewController ()
 @property (nonatomic, retain) MPInterstitialAdController *interstitial;
 
+@property (weak, nonatomic) IBOutlet UITextField *MoPubSDKVersion;
+@property (weak, nonatomic) IBOutlet UITextField *AerServSDKVersion;
+@property (weak, nonatomic) IBOutlet UITextField *AerServSDKGDPR;
 
 @end
 
 @implementation DataViewController
 
 NSString *logTag = @"SharkNark~~";
-
+NSString *version = @"SharkNark~~ unknown version";
 
     
 - (void)viewDidLoad {
@@ -26,6 +29,7 @@ NSString *logTag = @"SharkNark~~";
     // Do any additional setup after loading the view, typically from a nib.
     
     self.title = @"Interstitial";
+    version = [AerServSDK sdkVersion];
     
     // Instantiate the interstitial using the class convenience method.
     self.interstitial = [MPInterstitialAdController
@@ -34,11 +38,26 @@ NSString *logTag = @"SharkNark~~";
     // Delegates send messages to you.
     self.interstitial.delegate = self;
     
+    // Load Interstitial and set debug text
     [self loadInterstitial];
-    
+    [self setDebugText];
     
 
     NSLog(@"%@", [logTag stringByAppendingString:@"DataViewController - viewDidLoad"]);
+    [AerServSDK initializeWithAppID:@"380000"];
+
+}
+
+
+// Gets debug information for the application
+- (void) setDebugText {
+    // _MoPubSDKVersion.text = [];
+    _AerServSDKVersion.text = [AerServSDK sdkVersion];
+    
+    if ([AerServSDK getGDPRConsentValue]){
+        _AerServSDKGDPR.text = @"YES GDPR Consent";
+    } else
+        _AerServSDKGDPR.text = @"NO GDPR Consent";
 
 }
 
