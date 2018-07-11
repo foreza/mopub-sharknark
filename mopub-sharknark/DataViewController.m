@@ -7,7 +7,6 @@
 //
 
 #import "DataViewController.h"
-#import "MPGlobal.h"
 
 @interface DataViewController ()
 @property (nonatomic, retain) MPInterstitialAdController *interstitial;
@@ -15,37 +14,61 @@
 @property (weak, nonatomic) IBOutlet UITextField *MoPubSDKVersion;
 @property (weak, nonatomic) IBOutlet UITextField *AerServSDKVersion;
 @property (weak, nonatomic) IBOutlet UITextField *AerServSDKGDPR;
+@property (weak, nonatomic) IBOutlet UIScrollView *ScrollView;
+
+
+
 
 @end
 
 @implementation DataViewController
 
 NSString *logTag = @"SharkNark~~";
-NSString *version = @"SharkNark~~ unknown version";
 
     
 - (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+
     
-    self.title = @"Interstitial";
-    version = [AerServSDK sdkVersion];
+    // Init the AerServ SDK
+    [AerServSDK initializeWithAppID:@"380000"];
     
-    // Instantiate the interstitial using the class convenience method.
-    self.interstitial = [MPInterstitialAdController
-                         interstitialAdControllerForAdUnitId:@"8ebb75051f774da8bd5bdb4fddb475df"];
+    
+    self.title = @"SHARK!";
+    
+    _AerServSDKVersion.text = [AerServSDK sdkVersion];
+    _MoPubSDKVersion.text = MP_SDK_VERSION;
+    
+    // Set the scrollview content size to larger than the actual defined dimensions
+    _ScrollView.contentSize = CGSizeMake(self.view.bounds.size.width, 900);
+    
+    // Instantiate the banners and interstitial using the class convenience method.
+    self.adView = [[MPAdView alloc] initWithAdUnitId:@"c6f63589809349deb3a6572e12f5e714" size:MOPUB_BANNER_SIZE];
+    self.interstitial = [MPInterstitialAdController interstitialAdControllerForAdUnitId:@"8ebb75051f774da8bd5bdb4fddb475df"];
+    
     
     // Delegates send messages to you.
+    self.adView.delegate = self;
     self.interstitial.delegate = self;
     
-    // Load Interstitial and set debug text
-    [self loadInterstitial];
-    [self setDebugText];
+    
+    // Load the banner and add it to the view
+    self.adView.frame = CGRectMake((self.view.bounds.size.width - MOPUB_BANNER_SIZE.width) / 2, self.view.bounds.size.height - MOPUB_BANNER_SIZE.height, MOPUB_BANNER_SIZE.width, MOPUB_BANNER_SIZE.height);
+    [_ScrollView addSubview:self.adView];
+    [self.adView loadAd];
+    
+    
+    // Load Interstitial
+    // [self loadInterstitial];
     
 
     NSLog(@"%@", [logTag stringByAppendingString:@"DataViewController - viewDidLoad"]);
-    [AerServSDK initializeWithAppID:@"380000"];
 
+
+    
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    
+    
 }
 
 
@@ -81,6 +104,15 @@ NSString *version = @"SharkNark~~ unknown version";
     NSLog(@"%@", [logTag stringByAppendingString:@"DataViewController - loadInterstitial"]);
 
 }
+
+
+#pragma mark - <MPAdViewDelegate>
+
+
+- (void)adViewDidLoadAd:(MPAdView *)view
+{ // something
+}
+
 
 #pragma mark - <MPInterstitialAdControllerDelegate>
 

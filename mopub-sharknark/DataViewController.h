@@ -7,13 +7,15 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "MPAdView.h"
 #import "MPInterstitialAdController.h"
 #import <AerServSDK/AerServSDK.h>
 
 
-@interface DataViewController : UIViewController <MPInterstitialAdControllerDelegate>
+@interface DataViewController : UIViewController <MPAdViewDelegate, MPInterstitialAdControllerDelegate>
 
 @property (strong, nonatomic) IBOutlet UILabel *dataLabel;
+@property (nonatomic) MPAdView *adView;         // For MoPub Banner
 @property (strong, nonatomic) id dataObject;
 
 @end
