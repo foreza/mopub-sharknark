@@ -11,9 +11,6 @@
 #import "MPGlobal.h"
 #import "MPCoreInstanceProvider.h"
 #import "MPAPIEndpoints.h"
-#import "MPHTTPNetworkSession.h"
-#import "MPURLRequest.h"
-#import "MPAdServerURLBuilder.h"
 
 @implementation MPSessionTracker
 
@@ -34,8 +31,21 @@
 
 + (void)trackEvent
 {
-    MPURLRequest * request = [[MPURLRequest alloc] initWithURL:[MPAdServerURLBuilder sessionTrackingURL]];
-    [MPHTTPNetworkSession startTaskWithHttpRequest:request responseHandler:nil errorHandler:nil];
+    [NSURLConnection connectionWithRequest:[[MPCoreInstanceProvider sharedProvider] buildConfiguredURLRequestWithURL:[self URL]]
+                                  delegate:nil];
+}
+
++ (NSURL *)URL
+{
+    NSString *path = [NSString stringWithFormat:@"%@?v=%@&udid=%@&id=%@&av=%@&st=1",
+                      [MPAPIEndpoints baseURLStringWithPath:MOPUB_API_PATH_SESSION testing:NO],
+                      MP_SERVER_VERSION,
+                      [MPIdentityProvider identifier],
+                      [[[NSBundle mainBundle] bundleIdentifier] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
+                      [[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]
+                      ];
+
+    return [NSURL URLWithString:path];
 }
 
 @end

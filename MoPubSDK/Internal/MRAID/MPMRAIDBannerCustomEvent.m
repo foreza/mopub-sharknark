@@ -8,6 +8,7 @@
 #import "MPMRAIDBannerCustomEvent.h"
 #import "MPLogging.h"
 #import "MPAdConfiguration.h"
+#import "MPInstanceProvider.h"
 #import "MRController.h"
 #import "MPWebView.h"
 #import "MPViewabilityTracker.h"
@@ -31,9 +32,7 @@
                                  configuration.preferredSize.height);
     }
 
-    self.mraidController = [[MRController alloc] initWithAdViewFrame:adViewFrame
-                                                     adPlacementType:MRAdViewPlacementTypeInline
-                                                            delegate:self];
+    self.mraidController = [[MPInstanceProvider sharedProvider] buildBannerMRControllerWithFrame:adViewFrame delegate:self];
     [self.mraidController loadAdWithConfiguration:configuration];
 }
 

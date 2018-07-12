@@ -9,8 +9,6 @@
 #import "MPVASTAd.h"
 #import "MPVASTWrapper.h"
 #import "MPXMLParser.h"
-#import "MPHTTPNetworkSession.h"
-#import "MPURLRequest.h"
 
 @interface MPVASTWrapper (MPVASTManager)
 
@@ -27,13 +25,11 @@ static NSString * const kMPVASTManagerErrorDomain = @"com.mopub.MPVASTManager";
 
 + (void)fetchVASTWithURL:(NSURL *)URL completion:(void (^)(MPVASTResponse *, NSError *))completion
 {
-    [MPHTTPNetworkSession startTaskWithHttpRequest:[MPURLRequest requestWithURL:URL] responseHandler:^(NSData * _Nonnull data, NSHTTPURLResponse * _Nonnull response) {
-        [MPVASTManager fetchVASTWithData:data completion:completion];
-    } errorHandler:^(NSError * _Nonnull error) {
-        if (completion != nil) {
-            completion(nil, error);
-        }
-    }];
+    [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:URL]
+                                       queue:[NSOperationQueue mainQueue]
+                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+                               [self fetchVASTWithData:data completion:completion];
+                           }];
 }
 
 + (void)fetchVASTWithData:(NSData *)data completion:(void (^)(MPVASTResponse *, NSError *))completion
@@ -78,40 +74,40 @@ static NSString * const kMPVASTManagerErrorDomain = @"com.mopub.MPVASTManager";
         }
     }
 
-    __weak __typeof__(self) weakSelf = self;
     __block NSInteger wrappersFetched = 0;
     for (MPVASTWrapper *wrapper in wrappers) {
-        [MPHTTPNetworkSession startTaskWithHttpRequest:[MPURLRequest requestWithURL:wrapper.VASTAdTagURI] responseHandler:^(NSData * _Nonnull data, NSHTTPURLResponse * _Nonnull response) {
-            // Dispatch the VAST XML parsing.
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                __typeof__(self) strongSelf = weakSelf;
-                [strongSelf parseVASTResponseFromData:data depth:depth + 1 completion:^(MPVASTResponse *response, NSError *error) {
-                    if (error) {
-                        completion(nil, error);
-                        return;
-                    }
+        [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:wrapper.VASTAdTagURI]
+                                           queue:[NSOperationQueue mainQueue]
+                               completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+                                   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                                       if (connectionError) {
+                                           wrapper.wrappedVASTResponse = nil;
+                                       } else if (data) {
+                                           [self parseVASTResponseFromData:data depth:depth + 1 completion:^(MPVASTResponse *response, NSError *error) {
+                                               if (error) {
+                                                   completion(nil, error);
+                                                   return;
+                                               }
 
-                    wrapper.wrappedVASTResponse = response;
-                    wrappersFetched++;
+                                               wrapper.wrappedVASTResponse = response;
+                                               wrappersFetched++;
 
-                    // Once we've fetched all wrappers within the VAST
-                    // response, we can call the top-level completion
-                    // handler.
-                    if (wrappersFetched == [wrappers count]) {
-                        if ([self VASTResponseContainsAtLeastOneAd:VASTResponse]) {
-                            completion(VASTResponse, nil);
-                            return;
-                        } else {
-                            completion(nil, [NSError errorWithDomain:kMPVASTManagerErrorDomain code:MPVASTErrorNoAdsFound userInfo:nil]);
-                            return;
-                        }
-                    }
-                }];
-
-            });
-        } errorHandler:^(NSError * _Nonnull error) {
-            wrapper.wrappedVASTResponse = nil;
-        }];
+                                               // Once we've fetched all wrappers within the VAST
+                                               // response, we can call the top-level completion
+                                               // handler.
+                                               if (wrappersFetched == [wrappers count]) {
+                                                   if ([self VASTResponseContainsAtLeastOneAd:VASTResponse]) {
+                                                       completion(VASTResponse, nil);
+                                                       return;
+                                                   } else {
+                                                       completion(nil, [NSError errorWithDomain:kMPVASTManagerErrorDomain code:MPVASTErrorNoAdsFound userInfo:nil]);
+                                                       return;
+                                                   }
+                                               }
+                                           }];
+                                       }
+                                   });
+                               }];
     }
 }
 

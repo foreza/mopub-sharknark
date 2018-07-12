@@ -21,8 +21,8 @@
 
 - (void)loadInterstitialWithAdUnitID:(NSString *)ID
                             keywords:(NSString *)keywords
-                    userDataKeywords:(NSString *)userDataKeywords
-                            location:(CLLocation *)location;
+                            location:(CLLocation *)location
+                             testing:(BOOL)testing;
 - (void)presentInterstitialFromViewController:(UIViewController *)controller;
 
 @end

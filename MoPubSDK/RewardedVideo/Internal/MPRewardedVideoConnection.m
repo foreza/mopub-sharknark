@@ -7,8 +7,6 @@
 
 #import <UIKit/UIKit.h>
 #import "MPRewardedVideoConnection.h"
-#import "MPHTTPNetworkSession.h"
-#import "MPURLRequest.h"
 
 static const NSTimeInterval kMaximumRequestRetryInterval = 900.0; // 15 mins
 static const NSTimeInterval kMinimumRequestRetryInterval = 5.0;
@@ -17,7 +15,7 @@ static const CGFloat kRetryIntervalBackoffMultiplier = 2.0;
 
 @interface MPRewardedVideoConnection()
 
-@property (nonatomic, strong) NSURLSessionTask *task;
+@property (nonatomic) NSURLConnection *connection;
 @property (nonatomic) NSURL *url;
 @property (nonatomic) NSUInteger retryCount;
 @property (nonatomic) NSTimeInterval accumulatedRetryInterval;
@@ -38,32 +36,9 @@ static const CGFloat kRetryIntervalBackoffMultiplier = 2.0;
 
 - (void)sendRewardedVideoCompletionRequest
 {
-    MPURLRequest *request = [MPURLRequest requestWithURL:self.url];
-    [self.task cancel];
-
-    __weak __typeof__(self) weakSelf = self;
-    self.task = [MPHTTPNetworkSession startTaskWithHttpRequest:request responseHandler:^(NSData * _Nonnull data, NSHTTPURLResponse * _Nonnull response) {
-        __typeof__(self) strongSelf = weakSelf;
-
-        NSInteger statusCode = response.statusCode;
-
-        // only retry on 5xx
-        if (statusCode >= 500 && statusCode <= 599) {
-            [strongSelf retryRewardedVideoCompletionRequest];
-        } else {
-            [strongSelf.delegate rewardedVideoConnectionCompleted:strongSelf url:strongSelf.url];
-        }
-    } errorHandler:^(NSError * _Nonnull error) {
-        __typeof__(self) strongSelf = weakSelf;
-
-        if (error.code == NSURLErrorTimedOut ||
-            error.code == NSURLErrorNetworkConnectionLost ||
-            error.code == NSURLErrorNotConnectedToInternet) {
-            [strongSelf retryRewardedVideoCompletionRequest];
-        } else {
-            [strongSelf.delegate rewardedVideoConnectionCompleted:strongSelf url:strongSelf.url];
-        }
-    }];
+    NSURLRequest *request = [NSURLRequest requestWithURL:self.url];
+    [self.connection cancel];
+    self.connection = [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
 - (void)retryRewardedVideoCompletionRequest
@@ -76,7 +51,7 @@ static const CGFloat kRetryIntervalBackoffMultiplier = 2.0;
         [self performSelector:@selector(sendRewardedVideoCompletionRequest) withObject:nil afterDelay:retryInterval];
     } else {
         [self.delegate rewardedVideoConnectionCompleted:self url:self.url];
-        [self.task cancel];
+        [self.connection cancel];
     }
     self.retryCount++;
 }
@@ -91,6 +66,30 @@ static const CGFloat kRetryIntervalBackoffMultiplier = 2.0;
         interval = kMaximumBackoffTime;
     }
     return interval;
+}
+
+#pragma mark - <NSURLConnectionDataDelegate>
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+{
+    if (error.code == NSURLErrorTimedOut ||
+        error.code == NSURLErrorNetworkConnectionLost ||
+        error.code == NSURLErrorNotConnectedToInternet) {
+        [self retryRewardedVideoCompletionRequest];
+    } else {
+        [self.delegate rewardedVideoConnectionCompleted:self url:self.url];
+    }
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
+{
+    NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
+    // only retry on 5xx
+    if (statusCode >= 500 && statusCode <= 599) {
+        [self retryRewardedVideoCompletionRequest];
+    } else {
+        [self.delegate rewardedVideoConnectionCompleted:self url:self.url];
+    }
 }
 
 @end

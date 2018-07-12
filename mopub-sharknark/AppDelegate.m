@@ -19,13 +19,18 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
     
-    MPMoPubConfiguration *sdkConfig = [[MPMoPubConfiguration alloc] initWithAdUnitIdForAppInitialization:@"8ebb75051f774da8bd5bdb4fddb475df"];
     
-    
-    sdkConfig.globalMediationSettings = @[];
-
-    
-    [[MoPub sharedInstance] initializeSdkWithConfiguration:sdkConfig completion:nil];
+//
+//    MPAdConfiguration *sdkConfig =
+//
+//
+//                                    initWithAdUnitIdForAppInitialization:@"8ebb75051f774da8bd5bdb4fddb475df"];
+//
+//
+//    sdkConfig.globalMediationSettings = @[];
+//
+//
+//    [[MoPub sharedInstance] initializeSdkWithConfiguration:sdkConfig completion:nil];
     
     return YES;
 }

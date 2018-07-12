@@ -24,7 +24,7 @@
 @property (nonatomic, assign) BOOL shouldHandleRequests;
 @property (nonatomic, weak) id<MRBridgeDelegate> delegate;
 
-- (instancetype)initWithWebView:(MPWebView *)webView delegate:(id<MRBridgeDelegate>)delegate;
+- (instancetype)initWithWebView:(MPWebView *)webView;
 
 - (void)loadHTMLString:(NSString *)HTML baseURL:(NSURL *)baseURL;
 

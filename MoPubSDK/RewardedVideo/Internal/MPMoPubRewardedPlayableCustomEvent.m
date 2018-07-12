@@ -8,6 +8,7 @@
 #import "MPMoPubRewardedPlayableCustomEvent.h"
 #import "MPMRAIDInterstitialViewController.h"
 #import "MPAdConfiguration.h"
+#import "MPInstanceProvider.h"
 #import "MPLogging.h"
 #import "MPRewardedVideoError.h"
 #import "MPCountdownTimerView.h"

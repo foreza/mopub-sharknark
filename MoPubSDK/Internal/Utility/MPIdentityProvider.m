@@ -7,7 +7,6 @@
 
 #import "MPIdentityProvider.h"
 #import "MPGlobal.h"
-#import "MPConsentManager.h"
 #import <AdSupport/AdSupport.h>
 
 #define MOPUB_IDENTIFIER_DEFAULTS_KEY @"com.mopub.identifier"
@@ -19,6 +18,7 @@ static BOOL gFrequencyCappingIdUsageEnabled = YES;
 
 @interface MPIdentityProvider ()
 
++ (NSString *)identifierFromASIdentifierManager:(BOOL)obfuscate;
 + (NSString *)mopubIdentifier:(BOOL)obfuscate;
 
 @end
@@ -37,7 +37,7 @@ static BOOL gFrequencyCappingIdUsageEnabled = YES;
 
 + (NSString *)_identifier:(BOOL)obfuscate
 {
-    if (MPIdentityProvider.advertisingTrackingEnabled && [MPConsentManager sharedManager].canCollectPersonalInfo) {
+    if (![self isAdvertisingIdAllZero]) {
         return [self identifierFromASIdentifierManager:obfuscate];
     } else {
         return [self mopubIdentifier:obfuscate];
@@ -54,11 +54,9 @@ static BOOL gFrequencyCappingIdUsageEnabled = YES;
     if (obfuscate) {
         return @"ifa:XXXX";
     }
-    if (!MPIdentityProvider.advertisingTrackingEnabled) {
-        return nil;
-    }
 
     NSString *identifier = [[ASIdentifierManager sharedManager].advertisingIdentifier UUIDString];
+
     return [NSString stringWithFormat:@"ifa:%@", [identifier uppercaseString]];
 }
 
@@ -107,6 +105,21 @@ static BOOL gFrequencyCappingIdUsageEnabled = YES;
 + (BOOL)frequencyCappingIdUsageEnabled
 {
     return gFrequencyCappingIdUsageEnabled;
+}
+
+
+
+// Beginning in iOS 10, when a user enables "Limit Ad Tracking", the OS will send advertising identifier with value of
+// 00000000-0000-0000-0000-000000000000
+
++ (BOOL)isAdvertisingIdAllZero {
+    NSString *identifier = [[ASIdentifierManager sharedManager].advertisingIdentifier UUIDString];
+    if (!identifier) {
+        // when identifier is nil, ifa:(null) is sent.
+        return false;
+    }  else {
+        return [identifier isEqualToString:MOPUB_ALL_ZERO_UUID];
+    }
 }
 
 @end

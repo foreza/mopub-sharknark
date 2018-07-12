@@ -12,6 +12,7 @@
 #import "MPAdServerURLBuilder.h"
 #import "MPInterstitialAdController.h"
 #import "MPInterstitialCustomEventAdapter.h"
+#import "MPInstanceProvider.h"
 #import "MPCoreInstanceProvider.h"
 #import "MPInterstitialAdManagerDelegate.h"
 #import "MPLogging.h"
@@ -44,7 +45,7 @@
 {
     self = [super init];
     if (self) {
-        self.communicator = [[MPAdServerCommunicator alloc] initWithDelegate:self];
+        self.communicator = [[MPCoreInstanceProvider sharedProvider] buildMPAdServerCommunicatorWithDelegate:self];
         self.delegate = delegate;
     }
     return self;
@@ -83,15 +84,15 @@
 }
 
 
-- (void)loadInterstitialWithAdUnitID:(NSString *)ID keywords:(NSString *)keywords userDataKeywords:(NSString *)userDataKeywords location:(CLLocation *)location
+- (void)loadInterstitialWithAdUnitID:(NSString *)ID keywords:(NSString *)keywords location:(CLLocation *)location testing:(BOOL)testing
 {
     if (self.ready) {
         [self.delegate managerDidLoadInterstitial:self];
     } else {
         [self loadAdWithURL:[MPAdServerURLBuilder URLWithAdUnitID:ID
                                                          keywords:keywords
-                                                 userDataKeywords:userDataKeywords
-                                                         location:location]];
+                                                         location:location
+                                                          testing:testing]];
     }
 }
 
@@ -125,9 +126,9 @@
 
 #pragma mark - MPAdServerCommunicatorDelegate
 
-- (void)communicatorDidReceiveAdConfigurations:(NSArray<MPAdConfiguration *> *)configurations
+- (void)communicatorDidReceiveAdConfiguration:(MPAdConfiguration *)configuration
 {
-    self.configuration = configurations.firstObject;
+    self.configuration = configuration;
 
     MPLogInfo(@"Interstitial ad view is fetching ad network type: %@", self.configuration.networkType);
 
@@ -165,12 +166,12 @@
 
 - (void)setUpAdapterWithConfiguration:(MPAdConfiguration *)configuration;
 {
-    if (configuration.customEventClass == nil) {
+    MPBaseInterstitialAdapter *adapter = [[MPInstanceProvider sharedProvider] buildInterstitialAdapterForConfiguration:configuration
+                                                                                                              delegate:self];
+    if (!adapter) {
         [self adapter:nil didFailToLoadAdWithError:nil];
         return;
     }
-
-    MPBaseInterstitialAdapter *adapter = [[MPInterstitialCustomEventAdapter alloc] initWithDelegate:self];
 
     self.adapter = adapter;
     [self.adapter _getAdWithConfiguration:configuration];

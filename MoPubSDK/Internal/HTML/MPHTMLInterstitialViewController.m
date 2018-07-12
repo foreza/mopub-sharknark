@@ -8,6 +8,7 @@
 #import "MPHTMLInterstitialViewController.h"
 #import "MPWebView.h"
 #import "MPAdDestinationDisplayAgent.h"
+#import "MPInstanceProvider.h"
 #import "MPViewabilityTracker.h"
 
 @interface MPHTMLInterstitialViewController ()
@@ -36,7 +37,8 @@
     [super viewDidLoad];
 
     self.view.backgroundColor = [UIColor blackColor];
-    self.backingViewAgent = [[MPAdWebViewAgent alloc] initWithAdWebViewFrame:self.view.bounds delegate:self];
+    self.backingViewAgent = [[MPInstanceProvider sharedProvider] buildMPAdWebViewAgentWithAdWebViewFrame:self.view.bounds
+                                                                                                delegate:self];
 }
 
 #pragma mark - Public

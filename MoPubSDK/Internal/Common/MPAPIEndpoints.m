@@ -32,11 +32,11 @@ static BOOL sUsesHTTPS = YES;
     return sUsesHTTPS ? @"https://" : @"http://";
 }
 
-+ (NSString *)baseURLStringWithPath:(NSString *)path
++ (NSString *)baseURLStringWithPath:(NSString *)path testing:(BOOL)testing
 {
     return [NSString stringWithFormat:@"%@%@%@",
             [[self class] baseURLScheme],
-            MOPUB_BASE_HOSTNAME,
+            testing ? MOPUB_BASE_HOSTNAME_FOR_TESTING : MOPUB_BASE_HOSTNAME,
             path];
 }
 

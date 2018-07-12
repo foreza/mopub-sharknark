@@ -11,8 +11,6 @@
 #import "MPIdentityProvider.h"
 #import "MPLogging.h"
 #import "MPTimer.h"
-#import "MPConsentManager.h"
-#import "MPConsentChangedNotification.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -37,8 +35,6 @@ const NSTimeInterval kMPLocationUpdateInterval = 10.0 * 60.0;
 @property (nonatomic) NSDate *timeOfLastLocationUpdate;
 @property (nonatomic) MPTimer *nextLocationUpdateTimer;
 @property (nonatomic) MPTimer *locationUpdateDurationTimer;
-// Raw locationUpdatesEnabled value set by publisher
-@property (nonatomic) BOOL rawLocationUpdatesEnabled;
 
 @end
 
@@ -60,7 +56,7 @@ const NSTimeInterval kMPLocationUpdateInterval = 10.0 * 60.0;
 {
     self = [super init];
     if (self) {
-        _rawLocationUpdatesEnabled = YES;
+        _locationUpdatesEnabled = YES;
 
         _locationManager = [[MPCoreInstanceProvider sharedProvider] buildCLLocationManager];
         _locationManager.delegate = self;
@@ -81,17 +77,12 @@ const NSTimeInterval kMPLocationUpdateInterval = 10.0 * 60.0;
 
         // Re-activate location updates when the application comes back to the foreground.
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification object:[UIApplication sharedApplication] queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-            if (self.locationUpdatesEnabled) {
+            if (_locationUpdatesEnabled) {
                 [self resumeLocationUpdatesAfterBackgrounding];
             }
         }];
 
-        if ([MPConsentManager sharedManager].canCollectPersonalInfo) {
-            [self startRecurringLocationUpdates];
-        }
-
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(consentStateChanged:) name:kMPConsentChangedNotification object:nil];
-
+        [self startRecurringLocationUpdates];
     }
     return self;
 }
@@ -113,20 +104,11 @@ const NSTimeInterval kMPLocationUpdateInterval = 10.0 * 60.0;
     return _lastKnownLocation;
 }
 
-- (BOOL)locationUpdatesEnabled
-{
-    return self.rawLocationUpdatesEnabled && [MPConsentManager sharedManager].canCollectPersonalInfo;
-}
-
 - (void)setLocationUpdatesEnabled:(BOOL)enabled
 {
-    self.rawLocationUpdatesEnabled = enabled;
-    [self startOrStopLocationUpdates];
-}
+    _locationUpdatesEnabled = enabled;
 
-- (void)startOrStopLocationUpdates
-{
-    if (!self.locationUpdatesEnabled) {
+    if (!_locationUpdatesEnabled) {
         [self stopAllCurrentOrScheduledLocationUpdates];
         self.lastKnownLocation = nil;
     } else if (![self.locationUpdateDurationTimer isValid] && ![self.nextLocationUpdateTimer isValid]) {
@@ -171,7 +153,7 @@ const NSTimeInterval kMPLocationUpdateInterval = 10.0 * 60.0;
         return;
     }
 
-    if (!self.locationUpdatesEnabled) {
+    if (!_locationUpdatesEnabled) {
         MPLogDebug(@"Will not start location updates because they have been disabled.");
         return;
     }
@@ -304,11 +286,6 @@ const NSTimeInterval kMPLocationUpdateInterval = 10.0 * 60.0;
         self.lastKnownLocation = newLocation;
         MPLogDebug(@"Updated last known user location.");
     }
-}
-
-- (void)consentStateChanged:(NSNotification *)notification
-{
-    [self startOrStopLocationUpdates];
 }
 
 @end

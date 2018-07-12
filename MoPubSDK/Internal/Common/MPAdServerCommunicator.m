@@ -7,47 +7,40 @@
 
 #import "MPAdServerCommunicator.h"
 
-#import "MoPub.h"
 #import "MPAdConfiguration.h"
-#import "MPAPIEndpoints.h"
-#import "MPCoreInstanceProvider.h"
-#import "MPError.h"
-#import "MPHTTPNetworkSession.h"
 #import "MPLogging.h"
-#import "MPURLRequest.h"
+#import "MPCoreInstanceProvider.h"
+#import "MPLogEvent.h"
+#import "MPLogEventRecorder.h"
 
-// Ad response header
-static NSString * const kAdResponseTypeHeaderKey = @"X-Ad-Response-Type";
-static NSString * const kAdResponseTypeMultipleResponse = @"multi";
-
-// Multiple response JSON fields
-static NSString * const kMultiAdResponsesKey = @"ad-responses";
-static NSString * const kMultiAdResponsesHeadersKey = @"headers";
-static NSString * const kMultiAdResponsesBodyKey = @"body";
-static NSString * const kMultiAdResponsesAdMarkupKey = @"adm";
+const NSTimeInterval kRequestTimeoutInterval = 10.0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @interface MPAdServerCommunicator ()
 
 @property (nonatomic, assign, readwrite) BOOL loading;
-@property (nonatomic, strong) NSURLSessionTask * task;
+@property (nonatomic, copy) NSURL *URL;
+@property (nonatomic, strong) NSURLConnection *connection;
+@property (nonatomic, strong) NSMutableData *responseData;
+@property (nonatomic, strong) NSDictionary *responseHeaders;
+@property (nonatomic, strong) MPLogEvent *adRequestLatencyEvent;
 
-@end
-
-@interface MPAdServerCommunicator (Consent)
-
-/**
- Removes all ads.mopub.com cookies that are presently saved in NSHTTPCookieStorage to avoid inadvertently
- sending personal data across the wire via cookies. This method is expected to be called every ad request.
- */
-- (void)removeAllMoPubCookies;
+- (NSError *)errorForStatusCode:(NSInteger)statusCode;
+- (NSURLRequest *)adRequestForURL:(NSURL *)URL;
 
 @end
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @implementation MPAdServerCommunicator
+
+@synthesize delegate = _delegate;
+@synthesize URL = _URL;
+@synthesize connection = _connection;
+@synthesize responseData = _responseData;
+@synthesize responseHeaders = _responseHeaders;
+@synthesize loading = _loading;
 
 - (id)initWithDelegate:(id<MPAdServerCommunicatorDelegate>)delegate
 {
@@ -60,7 +53,8 @@ static NSString * const kMultiAdResponsesAdMarkupKey = @"adm";
 
 - (void)dealloc
 {
-    [self.task cancel];
+    [self.connection cancel];
+
 }
 
 #pragma mark - Public
@@ -68,120 +62,83 @@ static NSString * const kMultiAdResponsesAdMarkupKey = @"adm";
 - (void)loadURL:(NSURL *)URL
 {
     [self cancel];
+    self.URL = URL;
 
-    // Delete any cookies previous creatives have set before starting the load
-    [self removeAllMoPubCookies];
+    // Start tracking how long it takes to successfully or unsuccessfully retrieve an ad.
+    self.adRequestLatencyEvent = [[MPLogEvent alloc] initWithEventCategory:MPLogEventCategoryRequests eventName:MPLogEventNameAdRequest];
+    self.adRequestLatencyEvent.requestURI = URL.absoluteString;
 
-    // Check to be sure the SDK is initialized before starting the request
-    if (!MoPub.sharedInstance.isSdkInitialized) {
-        [self failLoadForSDKInit];
-    }
-
-    // Generate request
-    MPURLRequest * request = [[MPURLRequest alloc] initWithURL:URL];
-
-    __weak __typeof__(self) weakSelf = self;
-    self.task = [MPHTTPNetworkSession startTaskWithHttpRequest:request responseHandler:^(NSData * data, NSHTTPURLResponse * response) {
-        // Capture strong self for the duration of this block.
-        __typeof__(self) strongSelf = weakSelf;
-
-        // Status code indicates an error.
-        if (response.statusCode >= 400) {
-            [strongSelf didFailWithError:[strongSelf errorForStatusCode:response.statusCode]];
-            return;
-        }
-
-        // Handle the response.
-        [strongSelf didFinishLoadingWithData:data headers:response.allHeaderFields];
-
-    } errorHandler:^(NSError * error) {
-        // Capture strong self for the duration of this block.
-        __typeof__(self) strongSelf = weakSelf;
-
-        // Handle the error.
-        [strongSelf didFailWithError:error];
-    }];
-
+    self.connection = [NSURLConnection connectionWithRequest:[self adRequestForURL:URL]
+                                                    delegate:self];
     self.loading = YES;
 }
 
 - (void)cancel
 {
+    self.adRequestLatencyEvent = nil;
     self.loading = NO;
-    [self.task cancel];
-    self.task = nil;
+    [self.connection cancel];
+    self.connection = nil;
+    self.responseData = nil;
+    self.responseHeaders = nil;
 }
 
-- (void)failLoadForSDKInit {
-    MPLogError(@"Warning: Ad requested before initializing MoPub SDK. MoPub SDK 5.2.0 will require initializeSdkWithConfiguration:completion: to be called on MoPub.sharedInstance before attempting to load ads. Please update your integration as soon as possible.");
+#pragma mark - NSURLConnection delegate (NSURLConnectionDataDelegate in iOS 5.0+)
+
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
+{
+    if ([response respondsToSelector:@selector(statusCode)]) {
+        NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
+        if (statusCode >= 400) {
+            // Do not record a logging event if we failed to make a connection.
+            self.adRequestLatencyEvent = nil;
+
+            [connection cancel];
+            self.loading = NO;
+            [self.delegate communicatorDidFailWithError:[self errorForStatusCode:statusCode]];
+            return;
+        }
+    }
+
+    self.responseData = [NSMutableData data];
+    self.responseHeaders = [(NSHTTPURLResponse *)response allHeaderFields];
 }
 
-#pragma mark - Handlers
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+    [self.responseData appendData:data];
+}
 
-- (void)didFailWithError:(NSError *)error {
-    // Do not record a logging event if we failed.
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+{
+    // Do not record a logging event if we failed to make a connection.
+    self.adRequestLatencyEvent = nil;
+
     self.loading = NO;
     [self.delegate communicatorDidFailWithError:error];
 }
 
-- (void)didFinishLoadingWithData:(NSData *)data headers:(NSDictionary *)headers {
-    NSArray <MPAdConfiguration *> *configurations;
-    // Single ad response
-    if (![headers[kAdResponseTypeHeaderKey] isEqualToString:kAdResponseTypeMultipleResponse]) {
-        MPAdConfiguration *configuration = [[MPAdConfiguration alloc] initWithHeaders:headers
-                                                                                 data:data];
-        configurations = @[configuration];
-    }
-    // Multiple ad responses
-    else {
-        // The response data is a JSON payload conforming to the structure:
-        // ad-responses: [
-        //   {
-        //     headers: { x-adtype: html, ... },
-        //     body: "<!DOCTYPE html> <html> <head> ... </html>",
-        //     adm: "some ad markup"
-        //   },
-        //   ...
-        // ]
-        NSError * error = nil;
-        NSDictionary * json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-        if (error) {
-            MPLogError(@"Failed to parse multiple ad response JSON: %@", error.localizedDescription);
-            self.loading = NO;
-            [self.delegate communicatorDidFailWithError:error];
-            return;
-        }
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+{
+    [self.adRequestLatencyEvent recordEndTime];
+    self.adRequestLatencyEvent.requestStatusCode = 200;
 
-        NSArray * responses = json[kMultiAdResponsesKey];
-        if (responses == nil) {
-            MPLogError(@"No ad responses");
-            self.loading = NO;
-            [self.delegate communicatorDidFailWithError:[MOPUBError errorWithCode:MOPUBErrorUnableToParseJSONAdResponse]];
-            return;
-        }
+    MPAdConfiguration *configuration = [[MPAdConfiguration alloc]
+                                         initWithHeaders:self.responseHeaders
+                                         data:self.responseData];
+    MPAdConfigurationLogEventProperties *logEventProperties =
+        [[MPAdConfigurationLogEventProperties alloc] initWithConfiguration:configuration];
 
-        MPLogInfo(@"There are %ld ad responses", responses.count);
-
-        NSMutableArray<MPAdConfiguration *> * responseConfigurations = [NSMutableArray arrayWithCapacity:responses.count];
-        for (NSDictionary * responseJson in responses) {
-            NSDictionary * headers = responseJson[kMultiAdResponsesHeadersKey];
-            NSData * body = [responseJson[kMultiAdResponsesBodyKey] dataUsingEncoding:NSUTF8StringEncoding];
-
-            MPAdConfiguration * configuration = [[MPAdConfiguration alloc] initWithHeaders:headers data:body];
-            if (configuration) {
-                configuration.advancedBidPayload = responseJson[kMultiAdResponsesAdMarkupKey];
-                [responseConfigurations addObject:configuration];
-            }
-            else {
-                MPLogInfo(@"Failed to generate configuration from\nheaders:\n%@\nbody:\n%@", headers, responseJson[kMultiAdResponsesBodyKey]);
-            }
-        }
-
-        configurations = [NSArray arrayWithArray:responseConfigurations];
+    // Do not record ads that are warming up.
+    if (configuration.adUnitWarmingUp) {
+        self.adRequestLatencyEvent = nil;
+    } else {
+        [self.adRequestLatencyEvent setLogEventProperties:logEventProperties];
+        MPAddLogEvent(self.adRequestLatencyEvent);
     }
 
     self.loading = NO;
-    [self.delegate communicatorDidReceiveAdConfigurations:configurations];
+    [self.delegate communicatorDidReceiveAdConfiguration:configuration];
 }
 
 #pragma mark - Internal
@@ -197,21 +154,12 @@ static NSString * const kMultiAdResponsesAdMarkupKey = @"adm";
     return [NSError errorWithDomain:@"mopub.com" code:statusCode userInfo:errorInfo];
 }
 
-@end
-
-#pragma mark - Consent
-
-@implementation MPAdServerCommunicator (Consent)
-
-- (void)removeAllMoPubCookies {
-    // Make NSURL from base URL
-    NSURL *moPubBaseURL = [NSURL URLWithString:[MPAPIEndpoints baseURL]];
-
-    // Get array of cookies with the base URL, and delete each one
-    NSArray <NSHTTPCookie *> * cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:moPubBaseURL];
-    for (NSHTTPCookie * cookie in cookies) {
-        [[NSHTTPCookieStorage sharedHTTPCookieStorage] deleteCookie:cookie];
-    }
+- (NSURLRequest *)adRequestForURL:(NSURL *)URL
+{
+    NSMutableURLRequest *request = [[MPCoreInstanceProvider sharedProvider] buildConfiguredURLRequestWithURL:URL];
+    [request setCachePolicy:NSURLRequestReloadIgnoringCacheData];
+    [request setTimeoutInterval:kRequestTimeoutInterval];
+    return request;
 }
 
 @end

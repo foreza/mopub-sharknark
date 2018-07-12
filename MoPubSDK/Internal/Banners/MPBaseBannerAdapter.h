@@ -77,9 +77,4 @@
  */
 - (void)userWillLeaveApplicationFromAdapter:(MPBaseBannerAdapter *)adapter;
 
-/**
- * Fires when the impression tracker has been sent.
- */
-- (void)adapter:(MPBaseBannerAdapter *)adapter didTrackImpressionForAd:(UIView *)ad;
-
 @end

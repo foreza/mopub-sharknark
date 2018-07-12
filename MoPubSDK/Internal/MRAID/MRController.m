@@ -16,6 +16,7 @@
 #import "MPCoreInstanceProvider.h"
 #import "MPClosableView.h"
 #import "MPGlobal.h"
+#import "MPInstanceProvider.h"
 #import "MPLogging.h"
 #import "MPTimer.h"
 #import "NSHTTPURLResponse+MPAdditions.h"
@@ -25,8 +26,6 @@
 #import "MPAPIEndPoints.h"
 #import "MoPub.h"
 #import "MPViewabilityTracker.h"
-#import "MPHTTPNetworkSession.h"
-#import "MPURLRequest.h"
 
 static const NSTimeInterval kAdPropertyUpdateTimerInterval = 1.0;
 static const NSTimeInterval kMRAIDResizeAnimationTimeInterval = 0.3;
@@ -46,6 +45,8 @@ static NSString *const kMRAIDCommandResize = @"resize";
 @property (nonatomic, assign) MRAdViewPlacementType placementType;
 @property (nonatomic, strong) MRExpandModalViewController *expandModalViewController;
 @property (nonatomic, weak) MPMRAIDInterstitialViewController *interstitialViewController;
+@property (nonatomic, strong) NSMutableData *twoPartExpandData;
+@property (nonatomic, assign) NSStringEncoding responseEncoding;
 @property (nonatomic, assign) CGRect mraidDefaultAdFrame;
 @property (nonatomic, assign) CGRect mraidDefaultAdFrameInKeyWindow;
 @property (nonatomic, assign) CGSize currentAdSize;
@@ -79,16 +80,11 @@ static NSString *const kMRAIDCommandResize = @"resize";
 @property (nonatomic, readwrite) MPViewabilityTracker *viewabilityTracker;
 @property (nonatomic, readwrite) MPWebView *mraidWebView;
 
-// Networking
-@property (nonatomic, strong) NSURLSessionTask *task;
-
 @end
 
 @implementation MRController
 
-- (instancetype)initWithAdViewFrame:(CGRect)adViewFrame
-                    adPlacementType:(MRAdViewPlacementType)placementType
-                           delegate:(id<MRControllerDelegate>)delegate
+- (instancetype)initWithAdViewFrame:(CGRect)adViewFrame adPlacementType:(MRAdViewPlacementType)placementType
 {
     if (self = [super init]) {
         _placementType = placementType;
@@ -116,12 +112,10 @@ static NSString *const kMRAIDCommandResize = @"resize";
         _resizeBackgroundView = [[UIView alloc] initWithFrame:adViewFrame];
         _resizeBackgroundView.backgroundColor = [UIColor clearColor];
 
-        _destinationDisplayAgent = [MPAdDestinationDisplayAgent agentWithDelegate:self];
+        _destinationDisplayAgent = [[MPCoreInstanceProvider sharedProvider] buildMPAdDestinationDisplayAgentWithDelegate:self];
 
         _adAlertManager = [[MPCoreInstanceProvider sharedProvider] buildMPAdAlertManagerWithDelegate:self];
         _adAlertManagerTwoPart = [[MPCoreInstanceProvider sharedProvider] buildMPAdAlertManagerWithDelegate:self];
-
-        _delegate = delegate;
     }
 
     return self;
@@ -150,12 +144,11 @@ static NSString *const kMRAIDCommandResize = @"resize";
 
     self.mraidWebView = [self buildMRAIDWebViewWithFrame:self.mraidDefaultAdFrame
                                           forceUIWebView:self.shouldUseUIWebView];
-    self.mraidWebView.shouldConformToSafeArea = [self isInterstitialAd];
 
-    self.mraidBridge = [[MRBridge alloc] initWithWebView:self.mraidWebView delegate:self];
-    self.mraidAdView = [[MPClosableView alloc] initWithFrame:self.mraidDefaultAdFrame
-                                                     webView:self.mraidWebView
-                                                    delegate:self];
+    self.mraidBridge = [[MPInstanceProvider sharedProvider] buildMRBridgeWithWebView:self.mraidWebView delegate:self];
+    self.mraidAdView = [[MPInstanceProvider sharedProvider] buildMRAIDMPClosableViewWithFrame:self.mraidDefaultAdFrame
+                                                                                      webView:self.mraidWebView
+                                                                                     delegate:self];
     if (self.placementType == MRAdViewPlacementTypeInterstitial) {
         self.mraidAdView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     }
@@ -211,27 +204,35 @@ static NSString *const kMRAIDCommandResize = @"resize";
     [self.destinationDisplayAgent cancel];
 }
 
-#pragma mark - Loading Two Part Expand
+#pragma mark - Loading Two Part Expand (NSURLConnectionDelegate)
 
 - (void)loadTwoPartCreativeFromURL:(NSURL *)url
 {
     self.isAdLoading = YES;
 
-    MPURLRequest * request = [MPURLRequest requestWithURL:url];
-
-    __weak __typeof__(self) weakSelf = self;
-    self.task = [MPHTTPNetworkSession startTaskWithHttpRequest:request responseHandler:^(NSData * _Nonnull data, NSHTTPURLResponse * _Nonnull response) {
-        __typeof__(self) strongSelf = weakSelf;
-
-        NSURL *currentRequestUrl = strongSelf.task.currentRequest.URL;
-        [strongSelf connectionDidFinishLoadingData:data withResponse:response fromRequestUrl:currentRequestUrl];
-    } errorHandler:^(NSError * _Nonnull error) {
-        __typeof__(self) strongSelf = weakSelf;
-        [strongSelf didFailWithError:error];
-    }];
+    NSURLConnection *connection = [NSURLConnection connectionWithRequest:[NSURLRequest requestWithURL:url] delegate:self];
+    if (connection) {
+        self.twoPartExpandData = [NSMutableData data];
+    }
 }
 
-- (void)didFailWithError:(NSError *)error
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
+{
+    [self.twoPartExpandData setLength:0];
+
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+
+    NSDictionary *headers = [httpResponse allHeaderFields];
+    NSString *contentType = [headers objectForKey:kMoPubHTTPHeaderContentType];
+    self.responseEncoding = [httpResponse stringEncodingFromContentType:contentType];
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+    [self.twoPartExpandData appendData:data];
+}
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     self.isAdLoading = NO;
     // No matter what, show the close button on the expanded view.
@@ -239,15 +240,10 @@ static NSString *const kMRAIDCommandResize = @"resize";
     [self.mraidBridge fireErrorEventForAction:kMRAIDCommandExpand withMessage:@"Could not load URL."];
 }
 
-- (void)connectionDidFinishLoadingData:(NSData *)data withResponse:(NSHTTPURLResponse *)response fromRequestUrl:(NSURL *)requestUrl
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    // Extract the response encoding type.
-    NSDictionary *headers = [response allHeaderFields];
-    NSString *contentType = [headers objectForKey:kMoPubHTTPHeaderContentType];
-    NSStringEncoding responseEncoding = [response stringEncodingFromContentType:contentType];
-
-    NSString *str = [[NSString alloc] initWithData:data encoding:responseEncoding];
-    [self.mraidBridgeTwoPart loadHTMLString:str baseURL:requestUrl];
+    NSString *str = [[NSString alloc] initWithData:self.twoPartExpandData encoding:self.responseEncoding];
+    [self.mraidBridgeTwoPart loadHTMLString:str baseURL:connection.currentRequest.URL];
 }
 
 #pragma mark - Private
@@ -852,10 +848,8 @@ static NSString *const kMRAIDCommandResize = @"resize";
         CGRect twoPartFrame = self.mraidAdView.frame;
 
         MPWebView *twoPartWebView = [self buildMRAIDWebViewWithFrame:twoPartFrame forceUIWebView:self.shouldUseUIWebView];
-        self.mraidBridgeTwoPart = [[MRBridge alloc] initWithWebView:twoPartWebView delegate:self];
-        self.mraidAdViewTwoPart = [[MPClosableView alloc] initWithFrame:twoPartFrame
-                                                                webView:twoPartWebView
-                                                               delegate:self];
+        self.mraidBridgeTwoPart = [[MPInstanceProvider sharedProvider] buildMRBridgeWithWebView:twoPartWebView delegate:self];
+        self.mraidAdViewTwoPart = [[MPInstanceProvider sharedProvider] buildMRAIDMPClosableViewWithFrame:twoPartFrame webView:twoPartWebView delegate:self];
         self.isAdLoading = YES;
 
         self.expansionContentView = self.mraidAdViewTwoPart;

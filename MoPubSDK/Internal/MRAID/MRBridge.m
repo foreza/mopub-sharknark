@@ -11,6 +11,7 @@
 #import "NSURL+MPAdditions.h"
 #import "MPGlobal.h"
 #import "MRBundleManager.h"
+#import "MPInstanceProvider.h"
 #import "UIWebView+MPAdditions.h"
 #import "MRError.h"
 #import "MRProperty.h"
@@ -27,14 +28,12 @@ static NSString * const kMraidURLScheme = @"mraid";
 
 @implementation MRBridge
 
-- (instancetype)initWithWebView:(MPWebView *)webView delegate:(id<MRBridgeDelegate>)delegate
+- (instancetype)initWithWebView:(MPWebView *)webView
 {
     if (self = [super init]) {
         _webView = webView;
         _webView.delegate = self;
-        _nativeCommandHandler = [[MRNativeCommandHandler alloc] initWithDelegate:self];
-        _shouldHandleRequests = YES;
-        _delegate = delegate;
+        _nativeCommandHandler = [[MPInstanceProvider sharedProvider] buildMRNativeCommandHandlerWithDelegate:self];
     }
 
     return self;
@@ -219,7 +218,7 @@ static NSString * const kMraidURLScheme = @"mraid";
 
 - (NSString *)MRAIDScriptPath
 {
-    MRBundleManager *bundleManager = [MRBundleManager sharedManager];
+    MRBundleManager *bundleManager = [[MPInstanceProvider sharedProvider] buildMRBundleManager];
     return [bundleManager mraidPath];
 }
 

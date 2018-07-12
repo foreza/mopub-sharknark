@@ -6,9 +6,8 @@
 //
 
 #import "MPClosableView.h"
-#import "MPGlobal.h"
+#import "MPInstanceProvider.h"
 #import "MPUserInteractionGestureRecognizer.h"
-#import "MPWebView.h"
 
 static CGFloat kCloseRegionWidth = 50.0f;
 static CGFloat kCloseRegionHeight = 50.0f;
@@ -61,19 +60,14 @@ CGRect MPClosableViewCustomCloseButtonFrame(CGSize size, MPClosableViewCloseButt
 
 @implementation MPClosableView
 
-- (instancetype)initWithFrame:(CGRect)frame
-                      webView:(MPWebView *)webView
-                     delegate:(id<MPClosableViewDelegate>)delegate {
+- (instancetype)initWithFrame:(CGRect)frame closeButtonType:(MPClosableViewCloseButtonType)closeButtonType
+{
     self = [super initWithFrame:frame];
 
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         self.opaque = NO;
-        self.clipsToBounds = YES;
 
-        _delegate = delegate;
-
-        // Set up close button
         _closeButtonLocation = MPClosableViewCloseButtonLocationTopRight;
 
         _userInteractionRecognizer = [[MPUserInteractionGestureRecognizer alloc] initWithTarget:self action:@selector(handleInteraction:)];
@@ -89,13 +83,9 @@ CGRect MPClosableViewCustomCloseButtonFrame(CGSize size, MPClosableViewCloseButt
 
         [_closeButton addTarget:self action:@selector(closeButtonPressed) forControlEvents:UIControlEventTouchUpInside];
 
-        [self setCloseButtonType:MPClosableViewCloseButtonTypeTappableWithImage];
+        [self setCloseButtonType:closeButtonType];
 
         [self addSubview:_closeButton];
-
-        // Set up web view
-        webView.frame = self.bounds;
-        [self addSubview:webView];
     }
 
     return self;

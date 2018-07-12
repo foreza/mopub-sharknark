@@ -9,21 +9,8 @@
 
 @interface MPIdentityProvider : NSObject
 
-/**
- * Return IDFA if it's available. If IDFA is not available or contains only 0s, return MoPub rotation ID that changes every 24 hours.
- */
 + (NSString *)identifier;
-
-/**
- * Return IDFA if it's available. If IDFA is not available or contains only 0s, return nil.
- */
-+ (NSString *)identifierFromASIdentifierManager:(BOOL)obfuscate;
-
-/**
-* Return MoPub UUID
-*/
 + (NSString *)obfuscatedIdentifier;
-
 + (BOOL)advertisingTrackingEnabled;
 
 /**

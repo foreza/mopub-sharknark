@@ -7,10 +7,10 @@
 //
 
 #import "MPAdView.h"
-#import "MPBannerAdManager.h"
-#import "MPBannerAdManagerDelegate.h"
 #import "MPClosableView.h"
-#import "MPCoreInstanceProvider.h"
+#import "MPBannerAdManager.h"
+#import "MPInstanceProvider.h"
+#import "MPBannerAdManagerDelegate.h"
 #import "MPLogging.h"
 
 @interface MPAdView () <MPBannerAdManagerDelegate>

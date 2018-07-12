@@ -4,7 +4,7 @@
 
 #import "MRVideoPlayerManager.h"
 #import <MediaPlayer/MediaPlayer.h>
-#import "MPGlobal.h"
+#import "MPInstanceProvider.h"
 
 @implementation MRVideoPlayerManager
 
@@ -33,7 +33,7 @@
         return;
     }
 
-    MPMoviePlayerViewController *controller = [[MPMoviePlayerViewController alloc] initWithContentURL:url];
+    MPMoviePlayerViewController *controller = [[MPInstanceProvider sharedProvider] buildMPMoviePlayerViewControllerWithURL:url];
 
     [self.delegate videoPlayerManagerWillPresentVideo:self];
     [[self.delegate viewControllerForPresentingVideoPlayer] presentViewController:controller animated:MP_ANIMATED completion:nil];

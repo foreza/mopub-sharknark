@@ -7,6 +7,7 @@
 
 #import "MPMoPubRewardedVideoCustomEvent.h"
 #import "MPMRAIDInterstitialViewController.h"
+#import "MPInstanceProvider.h"
 #import "MPLogging.h"
 #import "MPRewardedVideoReward.h"
 #import "MPAdConfiguration.h"
@@ -28,8 +29,8 @@
 - (void)requestRewardedVideoWithCustomEventInfo:(NSDictionary *)info
 {
     MPLogInfo(@"Loading MoPub rewarded video");
-    self.interstitial = [[MPMRAIDInterstitialViewController alloc] initWithAdConfiguration:[self.delegate configuration]];
-    self.interstitial.delegate = self;
+    self.interstitial = [[MPInstanceProvider sharedProvider] buildMPMRAIDInterstitialViewControllerWithDelegate:self
+                                                                                                  configuration:[self.delegate configuration]];
 
     [self.interstitial setCloseButtonStyle:MPInterstitialCloseButtonStyleAlwaysHidden];
     [self.interstitial startLoading];
