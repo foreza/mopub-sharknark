@@ -22,7 +22,7 @@
 
 #define kAerServNetworkName @"AerServ"
 #define kAerServSDKName @"AerServ-iOS-SDK"
-#define kAerServSDKVersion @"3.1.1"
+#define kAerServSDKVersion @"3.1.5"
 
 #define kOpenAuctionMockData 0
 #define kASBudgetTargetURLPath @"as/adapter/v1/"
@@ -130,7 +130,7 @@ typedef NS_ENUM(NSInteger, ASOpenAuctionStep) {
 #define kEmptyStr @""
 #define kMillisInSec 1000.0f
 
-#define kEventsAerServDomain @"events.aerserv"
+#define kEventsAerServDomain @".aerserv.com/as/ev/"
 #define kVideoStartEventStr @"ev=2"
 #define kBPFEventStr @"ev=22"
 
@@ -161,16 +161,15 @@ typedef NS_ENUM(NSInteger, ASOpenAuctionStep) {
 
 #define kIS_IPHONE (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 
-#define kIS_PORTRAIT UIInterfaceOrientationIsPortrait([UIApplication sharedApplication].statusBarOrientation)
-#define kIS_LANDSCAPE UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)
+#define kIS_PORTRAIT [UIApplication sharedApplication].keyWindow.rootViewController.view.frame.size.height > [UIApplication sharedApplication].keyWindow.rootViewController.view.frame.size.width
+#define kIS_LANDSCAPE [UIApplication sharedApplication].keyWindow.rootViewController.view.frame.size.width > [UIApplication sharedApplication].keyWindow.rootViewController.view.frame.size.height
 
 #define kIS_MAINTHREAD NSLog(@"-- Is Main Thread: %d", [[NSThread currentThread] isMainThread]);
 #define kDisplaySelf NSLog(@"----- %@", self);
 
 #pragma mark - Logging Macros
 
-#define DLog(FORMAT, ...) NSDateFormatter* format=[[NSDateFormatter alloc] init]; format.locale=[NSLocale currentLocale]; format.dateFormat=@"yyyy.MM.dd HH:mm:ss.SSS"; printf("AerServ-iOS-SDK | %s | %s\n", [[NSString stringWithFormat:@"%@", [format stringFromDate:[NSDate date]]] UTF8String], [[NSString stringWithFormat:FORMAT, __VA_ARGS__] UTF8String]); format=nil;
-
+#define DLog(FORMAT, ...) NSDateFormatter* format=[NSDateFormatter new]; format.locale=[NSLocale currentLocale]; format.dateFormat=@"yyyy.MM.dd HH:mm:ss.SSS"; NSArray* threadArr=[[NSString stringWithFormat:@"%@", [NSThread currentThread]] componentsSeparatedByString:@" "]; NSString* threadNumStr=[threadArr[3] substringToIndex:[threadArr[3] length]-1]; NSInteger threadNum=[threadNumStr integerValue]; printf("AerServ-iOS-SDK | %s | %s | %s\n", [[NSString stringWithFormat:@"%@", [format stringFromDate:[NSDate date]]] UTF8String], [[NSString stringWithFormat:@"%d", (int)(threadNum+1000)] UTF8String], [[NSString stringWithFormat:FORMAT, __VA_ARGS__] UTF8String]); format=nil; threadArr=nil; threadNumStr=nil;
 
 #pragma mark - Generic Javascript Queries
 
@@ -178,17 +177,6 @@ typedef NS_ENUM(NSInteger, ASOpenAuctionStep) {
 #define kJSGetDocumentHeight @"document.height"
 #define kJSGetDocumentScrollWidth @"document.documentElement.scrollWidth"
 #define kJSGetDocumentScrollHeight @"document.documentElement.scrollHeight"
-
-
-#pragma mark - Static Ads
-
-#define kUseStaticTestVASTAd 0
-#define kVastStaticTestAdFileName @"AdPod2Ads1stAdFail"
-#define kVastStaticTestAdFileType @"xml"
-
-#define kUseStaticTestMRAIDAd 0
-#define kMRAIDStaticTestAdFileName @"mraid2_resize"
-#define kMRAIDStaticTestAdFileType @"html"
 
 #pragma mark - Lock Orientation
 

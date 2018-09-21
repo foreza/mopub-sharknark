@@ -9,6 +9,7 @@
 #import "AerServCustomEventRewardedInterstitial.h"
 #import "AerServSDK/ASInterstitialViewController.h"
 #import "AerServCustomEventUtils.h"
+#import "AerServBidder.h"
 
 @interface AerServCustomEventRewardedInterstitial () <ASInterstitialViewControllerDelegate>
 
@@ -25,30 +26,26 @@
         if(appId) {
             [AerServCustomEventUtils initWithAppId:[appId isKindOfClass: [NSString class]]?appId:[appId stringValue]];
         }
-            
         // Instantiate ad
         NSString* placement = [info objectForKey:kPlacement];
-        self.asInterstitial = [ASInterstitialViewController viewControllerForPlacementID:placement
-                                                                            withDelegate:self];
-        self.asInterstitial.isPreload = YES;
-        self.didPreload = NO;
-    
-        // Set optional keywords parameter
-        id keywords = [info objectForKey:kKeywords];
-        if([keywords isKindOfClass:[NSArray class]]) {
-            self.asInterstitial.keyWords = (NSArray*)keywords;
-        } else if([keywords isKindOfClass:[NSString class]]) {
-            NSString* keywordsJsonStr = (NSString*)keywords;
-            NSError* error;
-            id keywordObjects = [NSJSONSerialization JSONObjectWithData:[keywordsJsonStr dataUsingEncoding: NSUTF8StringEncoding] options:0 error:&error];
-            if (error) {
-                MPLogError(@"Error reading keyword list: %@", error);
-            } else {
-                self.asInterstitial.keyWords = keywordObjects;
-            }
+        NSMutableDictionary* aerservBiddingInfo = [AerServBidder getAerservBiddingInfo];
+        id rewardedAd = aerservBiddingInfo[placement];
+        if([rewardedAd isKindOfClass:[ASInterstitialViewController class]]){
+            NSLog(@"AerServCustomEventInterstitial,requestRewardedVideoWithCustomEventInfo: Aerserv Bid Rewarded is already loaded.Skipping the loading part");
+            self.asInterstitial = rewardedAd;
+            [self.asInterstitial setDelegate:self];
+            [self.delegate rewardedVideoDidLoadAdForCustomEvent:self];
+            aerservBiddingInfo[placement] = nil;
         }
-    
-        [self.asInterstitial loadAd];
+        else{
+            self.asInterstitial = [ASInterstitialViewController viewControllerForPlacementID:placement
+                                                                                withDelegate:self];
+            self.asInterstitial.isPreload = YES;
+            self.didPreload = NO;
+            
+            // Load ad
+            [self.asInterstitial loadAd];
+        }
     }
     @catch(NSException* e) {
         MPLogError(@"AerServ rewarded interstitial failed to load with error: %@", e);
@@ -60,7 +57,6 @@
 - (BOOL)hasAdAvailable {
     return self.didPreload;
 }
-
 
 - (void)presentRewardedVideoFromViewController:(UIViewController*)viewController {
     [self.asInterstitial showFromViewController:viewController];

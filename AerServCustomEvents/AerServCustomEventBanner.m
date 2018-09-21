@@ -7,6 +7,7 @@
 #import "AerServCustomEventBanner.h"
 #import "AerServSDK/ASAdView.h"
 #import "AerServCustomEventUtils.h"
+#import "AerServBidder.h"
 
 @interface AerServCustomEventBanner () <ASAdViewDelegate>
 
@@ -25,24 +26,27 @@
         
         // Instantiate ad
         NSString* placement = [info objectForKey:kPlacement];
-    
-        self.asBanner = [ASAdView viewWithPlacementID:placement andAdSize:size];
-        self.asBanner.delegate = self;
-        self.asBanner.bannerRefreshTimeInterval = 0;
-        self.asBanner.sizeAdToFit = YES;
         
-        // Set optional keywords parameter
-        NSArray *keywordsArr = nil;
-        id keywordsObj = [info objectForKey:kKeywords];
-        if([keywordsObj isKindOfClass:[NSString class]]) {
-            NSString *keywordsStr = (NSString*)keywordsObj;
-            keywordsArr = @[keywordsStr];
-        } else if([keywordsObj isKindOfClass:[NSArray class]]) {
-            keywordsArr = (NSArray*)keywordsObj;
+        NSMutableDictionary* aerservBiddingInfo = [AerServBidder getAerservBiddingInfo];
+        id bannerAd = aerservBiddingInfo[placement];
+        if([bannerAd isKindOfClass:[ASAdView class]]){
+            NSLog(@"AerServCustomEventBanner,requestAdWithSize: Aerserv Bid Banner is already loaded.Skipping the loading part");
+            self.asBanner = bannerAd;
+            self.asBanner.delegate = self;
+            self.asBanner.bannerRefreshTimeInterval = 0;
+            self.asBanner.sizeAdToFit = YES;
+            [self.delegate bannerCustomEvent:self didLoadAd:self.asBanner];
+            aerservBiddingInfo[placement] = nil;
         }
-        self.asBanner.keyWords = keywordsArr;
-    
-        [self.asBanner loadAd];
+        else{
+            self.asBanner = [ASAdView viewWithPlacementID:placement andAdSize:size];
+            self.asBanner.delegate = self;
+            self.asBanner.bannerRefreshTimeInterval = 0;
+            self.asBanner.sizeAdToFit = YES;
+            
+            // Load ad
+            [self.asBanner loadAd];
+        }
     }
     @catch(NSException* e) {
         MPLogError(@"AerServ banner failed to load with error: %@", e);

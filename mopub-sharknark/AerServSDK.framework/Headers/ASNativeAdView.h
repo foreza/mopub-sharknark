@@ -285,6 +285,16 @@ typedef NS_ENUM(NSInteger, ASNativeElementType) {
 - (void)nativeAdDidPreload:(ASNativeAdView* _Nullable)nativeAdView;
 
 /*
+ * - nativeAdImpression:
+ *
+ * Callback Parameters:
+ *     - nativeAdView, reference to the ASNativeAdView object that the callback originated from
+ *
+ * Implement this callback to be notified when an ad impression event is sent.
+ */
+- (void)nativeAdImpression:(ASNativeAdView* _Nullable)nativeAdView;
+
+/*
  * - nativeAdDidClick:
  *
  * Callback Parameters:

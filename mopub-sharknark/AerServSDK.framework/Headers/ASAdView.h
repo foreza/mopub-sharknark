@@ -134,14 +134,50 @@ extern CGSize const ASWideSkypscraperSize;
  */
 @property (nonatomic, assign) NSTimeInterval bannerRefreshTimeInterval;
 
+/*!
+ * If set to YES, advertisers may show a close button for banner ads
+ * If set to NO, advertiser close buttons with be hidden
+ * This property must be set before load ad. Default value will be NO otherwise.
+ */
+@property (nonatomic, assign) BOOL allowAdvertiserCloseButton;
+
+/*!
+ * An optional variable to pass in APS response(s) to be included in the open auction.
+ * If there is only a single APS response to be added, a single item array should be set.
+ * Each ad request must add in the pre-required APS response such it can be considered in
+ * open auction.
+ */
+@property (nonatomic, strong) NSArray* dtbAdResponses;
+
 /*! 
- * Initializes an the view with the given ad ID and banner size.
+ * Initializes an ad view with the given placement ID and banner size.
  * 
  * @param placementID the ID of the ad to display.
  * @param size the desired ad size.
  * @return the view the ad will be placed in.
  */
 + (instancetype)viewWithPlacementID:(NSString*)placementID andAdSize:(CGSize)adSize;
+
+/*!
+ * Initializes an ad view with the given placement ID, banner size, and delegate for additional callback events.
+ *
+ * @param placementID the ID of the ad to display.
+ * @param size the desired ad size.
+ * @param delegate the class that implements the ASAdViewDelegate protocol that will receive callback events for the ad view
+ * @return the view the ad will be placed in.
+ */
++ (instancetype)viewWithPlacementID:(NSString*)placementID asAdSize:(CGSize)adSize andDelegate:(id<ASAdViewDelegate>)delegate;
+
+/*!
+ * Initializes an ad view with the given placement ID, banner size, delegate for callback events, and any APS responses.
+ *
+ * @param placementID, the ID of the ad to display.
+ * @param size, the desired ad size.
+ * @param delegate, the class that implements the ASAdViewDelegate protocol that will receive callback events for the ad view
+ * @param responses, any additional APS responses that should be considered for the ad opportunity. If APS fails, set this to nil
+ * @return the view the ad will be placed in.
+ */
++ (instancetype)viewWithPlacementID:(NSString*)placementID asAdSize:(CGSize)adSize andDelegate:(id<ASAdViewDelegate>)delegate withA9Responses:(NSArray*)responses;
 
 /*!
  * Requests a new ad from the server. If an ad is already loading
@@ -230,7 +266,7 @@ extern CGSize const ASWideSkypscraperSize;
  * The view controller that can be used to present modal view controllers. Like the web
  * brwoser. This must be impletmented.
  *
- * @return the view controller to use when the add needs to present a modal view.
+ * @return the view controller to use when the ad needs to present a modal view.
  */
 - (UIViewController*)viewControllerForPresentingModalView;
 
@@ -256,6 +292,13 @@ extern CGSize const ASWideSkypscraperSize;
  * @param adView - The ad that preloaded. Must implement for preload functionality.
  */
 - (void)adViewDidPreloadAd:(ASAdView*)adView;
+
+/*!
+ * This called when the ad sends an ad impression event
+ *
+ * @param adView - The ad that preloaded. Must implement for preload functionality.
+ */
+- (void)adViewAdImpression:(ASAdView*)adView;
 
 /*!
  * This called when the ad is about to present a modal fullscreen view.
@@ -292,7 +335,7 @@ extern CGSize const ASWideSkypscraperSize;
  *
  * @param adView - The ad that size changed.
  */
-- (void)adSizedChanged:(ASAdView*)adView;
+- (void)adSizeChanged:(ASAdView*)adView;
 
 /*!
  * This is called when the ad is clicked on.

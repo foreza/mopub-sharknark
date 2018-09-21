@@ -95,6 +95,14 @@
 @property (nonatomic, copy) NSString* userId;
 
 /*!
+ * An optional variable to pass in APS response(s) to be included in the open auction.
+ * If there is only a single APS response to be added, a single item array should be set.
+ * Each ad request must add in the pre-required APS response such it can be considered in
+ * open auction.
+ */
+@property (nonatomic, strong) NSArray* dtbAdResponses;
+
+/*!
  * Returns an interstitial ad for the given ID.
  *
  * This will create a new full screen view controller for the given placement ID. If this
@@ -178,6 +186,13 @@
  * @param viewController The view controller whose view appeared.
  */
 - (void)interstitialViewControllerDidAppear:(ASInterstitialViewController*)viewController;
+
+/*!
+ * Called when the view controller sends an ad impression event.
+ *
+ * @param viewController The view controller whose view appeared.
+ */
+- (void)interstitialViewControllerAdImpression:(ASInterstitialViewController*)viewController;
 
 /*!
  * Called after an ad finishes playing.

@@ -28,9 +28,7 @@ extern NSString* const ASBannerParameter_Location;
 @property (nonatomic, weak) id<ASBannerAdProviderDelegate> delegate;
 
 - (void)requestBannerAdWithSize:(CGSize)size;
-- (void)rotateToOrientation:(UIInterfaceOrientation)newOrientation;
 - (void)rotateToOrientation:(UIInterfaceOrientation)newOrientation withSize:(CGSize)currSize;
-- (void)startPreloadedBannerAd __deprecated;
 - (void)scheduleRefresh;
 
 @end
@@ -38,28 +36,25 @@ extern NSString* const ASBannerParameter_Location;
 @protocol ASBannerAdProviderDelegate <NSObject>
 
 - (UIViewController*)viewControllerForPresentingModalView;
-
+- (void)bannerProvider:(ASBannerAdProvider*)provider didFailToLoadAdWithError:(NSError*)error;
 - (void)bannerProvider:(ASBannerAdProvider*)provider didLoadAd:(UIView*)ad;
 - (void)bannerProvider:(ASBannerAdProvider*)provider willShowAd:(UIView*)ad;
-- (void)bannerProvider:(ASBannerAdProvider*)provider didFailToLoadAdWithError:(NSError*)error;
-
+- (void)bannerProviderDidFireAdImpression:(ASBannerAdProvider*)provider;
 - (void)bannerProviderWillBeginAction:(ASBannerAdProvider*)provider;
 - (void)bannerProviderWillEndAction:(ASBannerAdProvider*)provider;
-
 - (void)bannerProviderWillLeaveApplication:(ASBannerAdProvider*)provider;
 - (void)bannerProviderAdChangedSize:(ASBannerAdProvider*)provider;
 - (void)bannerProviderAdWasClicked:(ASBannerAdProvider*)provider;
 - (void)bannerProviderDidShowAdCompletely:(ASBannerAdProvider*)provider;
-
 - (void)bannerProvider:(ASBannerAdProvider*)provider willChangeFrameTo:(CGRect)newFrame;
 - (ASAdView*)bannerProviderWillGetAdView:(ASBannerAdProvider*)provider;
 - (UIView*)bannerProviderWillGetContentView:(ASBannerAdProvider*)provider;
 - (void)bannerProvider:(ASBannerAdProvider*)provider willSetContentViewToMRAIDView:(ASMRAIDView*)mraidView;
 - (void)bannerProvider:(ASBannerAdProvider*)provider didLoadPlayerLayer:(AVPlayerLayer*)pl;
-
 - (void)bannerProvider:(ASBannerAdProvider*)provider willShowSkip:(BOOL)show;
 - (void)bannerProviderWillAttemptRefresh:(ASBannerAdProvider*)provider;
-
+- (void)bannerProviderWillGotoBackground:(ASBannerAdProvider*)provider;
+- (void)bannerProviderDidReturnToForeground:(ASBannerAdProvider*)provider;
 - (void)bannerProvider:(ASBannerAdProvider*)provider didFireAdvertiserEventWithMessage:(NSString*)msg;
 
 @end

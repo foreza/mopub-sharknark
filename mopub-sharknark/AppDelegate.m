@@ -7,9 +7,6 @@
 //
 
 #import "AppDelegate.h"
-//#import "MoPub.h"
-//#import "MPRewardedVideo.h"
-
 @interface AppDelegate ()
 
 @end

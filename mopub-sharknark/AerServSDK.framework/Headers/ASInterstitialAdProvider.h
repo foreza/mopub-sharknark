@@ -30,25 +30,21 @@
 /* Delegate calls that the interstitial ad provider must call. */
 @protocol ASInterstitialAdProviderDelegate <NSObject>
 
-- (void)interstitialAdProvider:(ASInterstitialAdProvider*)provider didLoadAd:(id)ad;
 - (void)interstitialAdProvider:(ASInterstitialAdProvider*)provider didFailToLoadAdWithError:(NSError*)error;
+- (void)interstitialAdProvider:(ASInterstitialAdProvider*)provider didLoadAd:(id)ad;
 - (void)interstitialAdProvider:(ASInterstitialAdProvider*)provider didPreloadAd:(id)ad;
+- (void)interstitialAdProviderWillFireFailShow:(ASInterstitialAdProvider*)provider;
+- (void)interstitialAdProviderFiresAdImpression:(ASInterstitialAdProvider*)provider;
 - (void)interstitialAdProviderDidAdComplete:(ASInterstitialAdProvider*)provider;
-
-- (void)interstitialAdProvider:(ASInterstitialAdProvider*)provider didVirtualCurrencyLoad:(NSDictionary*)vcData;
-- (void)interstitialAdProvider:(ASInterstitialAdProvider*)provider didVirtualCurrencyReward:(NSDictionary*)vcData;
-
 - (void)interstitialAdProviderWillAppear:(ASInterstitialAdProvider*)provider;
 - (void)interstitialAdProviderDidAppear:(ASInterstitialAdProvider*)provider;
-
 - (void)interstitialAdProviderWillDisappear:(ASInterstitialAdProvider*)provider;
 - (void)interstitialAdProviderDidDisappear:(ASInterstitialAdProvider*)provider;
-
 - (void)interstitialAdProviderAdWasTouched:(ASInterstitialAdProvider*)provider;
 - (void)interstitialAdProviderAdInteraction:(ASInterstitialAdProvider*)provider;
-
-- (void)interstitialAdProviderWillFireFailShow:(ASInterstitialAdProvider*)provider;
-
+- (void)interstitialAdProviderAdWillGotoBackground:(ASInterstitialAdProvider*)provider;
+- (void)interstitialAdProviderAdDidReturnToForeground:(ASInterstitialAdProvider*)provider;
+- (void)interstitialAdProvider:(ASInterstitialAdProvider*)provider didVirtualCurrencyReward:(NSDictionary*)vcData;
 - (void)interstitialAdProvider:(ASInterstitialAdProvider*)provider didFireAdvertiserEventWithMessage:(NSString*)msg;
 
 @end
