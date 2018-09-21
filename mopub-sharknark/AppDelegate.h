@@ -7,6 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "MoPub.h"
+#import "MPRewardedVideo.h"
+
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 

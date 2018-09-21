@@ -15,6 +15,7 @@
 		9234E52720DC49B300664810 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9234E52620DC49B300664810 /* Assets.xcassets */; };
 		9234E52A20DC49B300664810 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9234E52820DC49B300664810 /* LaunchScreen.storyboard */; };
 		9234E52D20DC49B300664810 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 9234E52C20DC49B300664810 /* main.m */; };
+		9242F8FA212F72A700EB071A /* TestController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9242F8F9212F72A700EB071A /* TestController.m */; };
 		924D4B2020DC54DA003EE824 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 924D4B1F20DC54DA003EE824 /* AdSupport.framework */; };
 		924D4B2220DC54E0003EE824 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 924D4B2120DC54E0003EE824 /* AVFoundation.framework */; };
 		924D4B2420DC54E7003EE824 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 924D4B2320DC54E7003EE824 /* CoreGraphics.framework */; };
@@ -254,6 +255,8 @@
 		9234E52920DC49B300664810 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9234E52B20DC49B300664810 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9234E52C20DC49B300664810 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		9242F8F8212F72A700EB071A /* TestController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestController.h; sourceTree = "<group>"; };
+		9242F8F9212F72A700EB071A /* TestController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TestController.m; sourceTree = "<group>"; };
 		924D4B1F20DC54DA003EE824 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = System/Library/Frameworks/AdSupport.framework; sourceTree = SDKROOT; };
 		924D4B2120DC54E0003EE824 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		924D4B2320DC54E7003EE824 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -752,6 +755,8 @@
 		9234E51620DC49B200664810 /* mopub-sharknark */ = {
 			isa = PBXGroup;
 			children = (
+				9242F8F8212F72A700EB071A /* TestController.h */,
+				9242F8F9212F72A700EB071A /* TestController.m */,
 				9234E51720DC49B200664810 /* AppDelegate.h */,
 				9234E51820DC49B200664810 /* AppDelegate.m */,
 				9234E51A20DC49B200664810 /* RootViewController.h */,
@@ -1676,6 +1681,7 @@
 				924D53D320DC57DA003EE824 /* MPNativeAdError.m in Sources */,
 				924D53CF20DC57DA003EE824 /* MPCollectionViewAdPlacer.m in Sources */,
 				924D542620DC57DA003EE824 /* MPActivityViewControllerHelper.m in Sources */,
+				9242F8FA212F72A700EB071A /* TestController.m in Sources */,
 				924D542520DC57DA003EE824 /* MPAdConfiguration.m in Sources */,
 				924D547A20DC57DA003EE824 /* MOPUBActivityIndicatorView.m in Sources */,
 				924D54C220DC5ABA003EE824 /* AerServCustomEventRewardedInterstitial.m in Sources */,
@@ -1836,6 +1842,7 @@
 					"$(PROJECT_DIR)/mopub-sharknark",
 					"/Users/jasonc/Desktop/Projects/mopub-sharknark/mopub-sharknark/AerServSDK.framework/**",
 				);
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/mopub-sharknark/MoPubSDK/RewardedVideo";
 				INFOPLIST_FILE = "mopub-sharknark/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1866,6 +1873,7 @@
 					"$(PROJECT_DIR)/mopub-sharknark",
 					"/Users/jasonc/Desktop/Projects/mopub-sharknark/mopub-sharknark/AerServSDK.framework/**",
 				);
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/mopub-sharknark/MoPubSDK/RewardedVideo";
 				INFOPLIST_FILE = "mopub-sharknark/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (

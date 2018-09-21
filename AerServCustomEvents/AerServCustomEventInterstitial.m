@@ -17,6 +17,9 @@
 
 @implementation AerServCustomEventInterstitial
 
+NSString *logTagAS = @"AS~~";
+
+
 - (void)requestInterstitialWithCustomEventInfo:(NSDictionary*)info {
     @try {
         id appId = [info objectForKey:kAppId]?[info objectForKey:kAppId]:[info objectForKey:kSiteId];
@@ -26,6 +29,11 @@
         
         // Instantiate ad
         NSString* placement = [info objectForKey:kPlacement];
+        
+        
+        NSLog(@"%@", [logTagAS stringByAppendingString:@"NEW AS AD MADE ----- == D: "]);
+
+        
         self.asInterstitial = [ASInterstitialViewController viewControllerForPlacementID:placement
                                                                             withDelegate:self];
         self.asInterstitial.isPreload = YES;
@@ -46,9 +54,15 @@
         }
     
         [self.asInterstitial loadAd];
+        NSLog(@"%@", [logTagAS stringByAppendingString:@"asInterstitial loadAd"]);
     }
     @catch(NSException* e) {
         MPLogError(@"AerServ interstitial failed to load with error: %@", e);
+        
+        NSLog(@"%@", [logTagAS stringByAppendingString:@"asInterstitial failed"]);
+
+        
+        
         [self.delegate interstitialCustomEvent:self
                       didFailToLoadAdWithError:nil];
     }
@@ -98,6 +112,8 @@
 
 - (void)dealloc {
     _asInterstitial = nil;
+    NSLog(@"%@", [logTagAS stringByAppendingString:@"asInterstitial dealloc !!!!!!! "]);
+
 }
 
 @end
