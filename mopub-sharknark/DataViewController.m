@@ -70,6 +70,12 @@ NSString *MP_CUSTOMNATIVEID = @"ef1226e2a6ce43da92da2d4f69997d1f";   // TODO: Se
     
 }
 
+
+- (void)loadStaticNative {
+    // TO DO: Implement
+    
+}
+
 - (IBAction)loadInterstitial:(id)sender {
     
     self.interstitial = [MPInterstitialAdController interstitialAdControllerForAdUnitId:MP_INTERSTITIALID];
