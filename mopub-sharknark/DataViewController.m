@@ -8,7 +8,7 @@
 
 #import "DataViewController.h"
 
-@interface DataViewController ()
+@interface DataViewController () <MPAdViewDelegate>
 
 //@property (nonatomic, retain) MPInterstitialAdController *interstitial;
 
@@ -27,11 +27,14 @@ NSString *logTag = @"SharkNark~~";
 
 // Placement / AdUnit IDs
 NSString *MP_APPID = @"1010499";
-NSString *MP_BANNERID = @"6e4d807aba354282a692b107bb60433a";         // Old: bc9158e63fc84368b070d0f39e479168
+// NSString *MP_BANNERID = @"6e4d807aba354282a692b107bb60433a";         // Old: bc9158e63fc84368b070d0f39e479168
 NSString *MP_INTERSTITIALID = @"0ac5282697c545c2a5e5b92b4112f70e";   // tablet: 77122b5593a9441697fb3c33bf337883 || older, 8ebb75051f774da8bd5bdb4fddb475df, 1ca8f0690bb04eb08891d5969fcb5255, 86ea3dd2b0934f7383c2e009f4301ecd
 NSString *MP_REWARDEDID = @"689e91ffac404f159a926a83135138a2";       // TODO: Set this up properly in MP dashboard and programmatically
 NSString *MP_CUSTOMNATIVEID = @"ef1226e2a6ce43da92da2d4f69997d1f";   // TODO: Set this up properly in MP dashboard and programmatically
 
+
+
+NSString *MP_BANNERID = @"c6f63589809349deb3a6572e12f5e714";
 
 - (void)viewDidLoad {
 
@@ -149,8 +152,10 @@ NSString *MP_CUSTOMNATIVEID = @"ef1226e2a6ce43da92da2d4f69997d1f";   // TODO: Se
 
 
 - (void)adViewDidLoadAd:(MPAdView *)view {
-    // do something
+     NSLog(@"%@", [logTag stringByAppendingString:@"MPAdViewDelegate adViewDidLoadAd"]);
 }
+
+
 
 //- (UIViewController *)viewControllerForPresentingModalView {
 //    // do something
@@ -194,7 +199,7 @@ NSString *MP_CUSTOMNATIVEID = @"ef1226e2a6ce43da92da2d4f69997d1f";   // TODO: Se
 
 - (void)rewardedVideoAdDidLoadForAdUnitID:(NSString *)adUnitID {
     NSLog(@"%@", [logTag stringByAppendingString:@"rewardedVideoAdDidLoadForAdUnitID"]);
-
+    
 }
 
 - (void)rewardedVideoAdDidFailToPlayForAdUnitID:(NSString *)adUnitID error:(NSError *)error {
@@ -203,35 +208,35 @@ NSString *MP_CUSTOMNATIVEID = @"ef1226e2a6ce43da92da2d4f69997d1f";   // TODO: Se
 }
 - (void)rewardedVideoAdWillAppearForAdUnitID:(NSString *)adUnitID {
     NSLog(@"%@", [logTag stringByAppendingString:@"rewardedVideoAdWillAppearForAdUnitID"]);
-
+    
 }
 - (void)rewardedVideoAdDidAppearForAdUnitID:(NSString *)adUnitID {
     NSLog(@"%@", [logTag stringByAppendingString:@"rewardedVideoAdDidAppearForAdUnitID"]);
-
+    
     
 }
 - (void)rewardedVideoAdWillDisappearForAdUnitID:(NSString *)adUnitID {
     NSLog(@"%@", [logTag stringByAppendingString:@"rewardedVideoAdWillDisappearForAdUnitID"]);
-
+    
     
 }
 - (void)rewardedVideoAdDidDisappearForAdUnitID:(NSString *)adUnitID {
     NSLog(@"%@", [logTag stringByAppendingString:@"rewardedVideoAdDidDisappearForAdUnitID"]);
-
+    
     
 }
 - (void)rewardedVideoAdDidExpireForAdUnitID:(NSString *)adUnitID {
     NSLog(@"%@", [logTag stringByAppendingString:@"rewardedVideoAdDidExpireForAdUnitID"]);
-
+    
     
 }
 - (void)rewardedVideoAdDidReceiveTapEventForAdUnitID:(NSString *)adUnitID {
     NSLog(@"%@", [logTag stringByAppendingString:@"rewardedVideoAdDidReceiveTapEventForAdUnitID"]);
-
+    
 }
 - (void)rewardedVideoAdShouldRewardForAdUnitID:(NSString *)adUnitID reward:(MPRewardedVideoReward *)reward {
     NSLog(@"%@", [logTag stringByAppendingString:@"rewardedVideoAdShouldRewardForAdUnitID"]);
-
+    
     
 }
 - (void)rewardedVideoAdWillLeaveApplicationForAdUnitID:(NSString *)adUnitID {
