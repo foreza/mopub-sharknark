@@ -26,21 +26,21 @@
 NSString *logTag = @"SharkNark~~";
 
 // Placement / AdUnit IDs
-NSString *MP_APPID = @"1010499";
-// NSString *MP_BANNERID = @"6e4d807aba354282a692b107bb60433a";         // Old: bc9158e63fc84368b070d0f39e479168
-NSString *MP_INTERSTITIALID = @"0ac5282697c545c2a5e5b92b4112f70e";   // tablet: 77122b5593a9441697fb3c33bf337883 || older, 8ebb75051f774da8bd5bdb4fddb475df, 1ca8f0690bb04eb08891d5969fcb5255, 86ea3dd2b0934f7383c2e009f4301ecd
+NSString *AS_APPID = @"1020421";
+NSString *MP_BANNERID = @"c6f63589809349deb3a6572e12f5e714";
+NSString *MP_INTERSTITIALID = @"8ebb75051f774da8bd5bdb4fddb475df";
+
 NSString *MP_REWARDEDID = @"689e91ffac404f159a926a83135138a2";       // TODO: Set this up properly in MP dashboard and programmatically
 NSString *MP_CUSTOMNATIVEID = @"ef1226e2a6ce43da92da2d4f69997d1f";   // TODO: Set this up properly in MP dashboard and programmatically
 
 
 
-NSString *MP_BANNERID = @"c6f63589809349deb3a6572e12f5e714";
 
 - (void)viewDidLoad {
 
     
     // Init the AerServ SDK
-    [AerServSDK initializeWithAppID:MP_APPID];
+    [AerServSDK initializeWithAppID:AS_APPID];
     
     // Set the scrollview content size to larger than the actual defined dimensions
     _ScrollView.contentSize = CGSizeMake(self.view.bounds.size.width, 900);
@@ -50,10 +50,11 @@ NSString *MP_BANNERID = @"c6f63589809349deb3a6572e12f5e714";
     _AerServSDKVersion.text = [AerServSDK sdkVersion];
     _MoPubSDKVersion.text = MP_SDK_VERSION;
 
+    [self loadBanner];       // Load the banner on view.
+    
     NSLog(@"%@", [logTag stringByAppendingString:@"DataViewController - viewDidLoad"]);
     [super viewDidLoad];
     
-    [self loadBanner];       // Load the banner
 }
 
 
@@ -62,22 +63,14 @@ NSString *MP_BANNERID = @"c6f63589809349deb3a6572e12f5e714";
     self.adView = [[MPAdView alloc] initWithAdUnitId:MP_BANNERID size:MOPUB_BANNER_SIZE];
     
     // Load the banner and add it to the view
-    self.adView.frame = CGRectMake((self.view.bounds.size.width - MOPUB_BANNER_SIZE.width) / 2, self.view.bounds.size.height - MOPUB_BANNER_SIZE.height, MOPUB_BANNER_SIZE.width, MOPUB_BANNER_SIZE.height);
-//    [_ScrollView addSubview:self.adView];
+    self.adView.frame = CGRectMake((self.view.bounds.size.width - MOPUB_BANNER_SIZE.width) / 2, self.view.bounds.size.height - (MOPUB_BANNER_SIZE.height + 15), MOPUB_BANNER_SIZE.width, MOPUB_BANNER_SIZE.height);
     [self.view addSubview:self.adView];
     self.adView.delegate = self;
     [self.adView loadAd];
     
     NSLog(@"%@", [logTag stringByAppendingString:@"DataViewController - loadBanner"]);
-
-    
 }
 
-
-- (void)loadStaticNative {
-    // TO DO: Implement
-    
-}
 
 - (IBAction)loadInterstitial:(id)sender {
     
@@ -242,6 +235,5 @@ NSString *MP_BANNERID = @"c6f63589809349deb3a6572e12f5e714";
 - (void)rewardedVideoAdWillLeaveApplicationForAdUnitID:(NSString *)adUnitID {
     NSLog(@"%@", [logTag stringByAppendingString:@"rewardedVideoAdWillLeaveApplicationForAdUnitID"]);
 }
-
 
 @end

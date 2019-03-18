@@ -1459,8 +1459,8 @@
 		92BBE54F21559C600007DAE3 /* AerServCustomEvents */ = {
 			isa = PBXGroup;
 			children = (
-				92BBE55021559C600007DAE3 /* AerServCustomEventBanner.m */,
 				92BBE55121559C600007DAE3 /* Native */,
+				92BBE55021559C600007DAE3 /* AerServCustomEventBanner.m */,
 				92BBE55A21559C600007DAE3 /* AerServBidder.m */,
 				92BBE55B21559C600007DAE3 /* AerServCustomEventUtils.m */,
 				92BBE55C21559C600007DAE3 /* AerServCustomEventRewardedInterstitial.m */,
